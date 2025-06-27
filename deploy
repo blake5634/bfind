@@ -1,0 +1,3 @@
+cp ./bfind.py ~/BH_Sync_New/Maintenance/bin
+cp ./bfind.py ~/bin
+cp ./bfind.py ~/bin/bfind
