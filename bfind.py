@@ -13,12 +13,16 @@ worddoctool = '/usr/bin/libreoffice'
 sheettool = '/usr/bin/libreoffice'
 pptool = '/usr/bin/libreoffice'
 textfiletool = '/usr/bin/kate'
+cpptool = '/usr/bin/kate'
+pythontool = '/usr/bin/kate'
 pictool = '/usr/bin/gwenview'
 videotool = '/usr/bin/vlc'
 
 tools = {'.pdf':pdftool, '.docx':worddoctool, '.odt':worddoctool, '.shn':'docgui4',
          '.xlsx':sheettool, '.xls':sheettool, '.ods':sheettool,
          '.txt':textfiletool, '.tex':textfiletool,
+         '.cpp':cpptool, '.c':cpptool, '.h':cpptool,
+         '.ino':cpptool,  '.py':pythontool,
          '.png':pictool, '.jpg':pictool, '.mpg':videotool, '.mp4':videotool,
          '.svg':'inkscape', '.ppt':pptool}
 
