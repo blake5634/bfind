@@ -22,6 +22,9 @@ tools = {'.pdf':pdftool, '.docx':worddoctool, '.odt':worddoctool, '.shn':'docgui
          '.png':pictool, '.jpg':pictool, '.mpg':videotool, '.mp4':videotool,
          '.svg':'inkscape', '.ppt':pptool}
 
+
+maxResults = 25
+
 #
 #   build argparser
 #
@@ -54,7 +57,12 @@ aparse.add_argument('--update',  dest='update', action='store_true',
 aparse.add_argument('--dirs',  dest='dirs', action='store_true',
                     help='Only print directories which match or have matching files (but not the files)')
 
+aparse.add_argument('--dots', dest='dots', action='store_true',
+                    help ='Show hidden directories like ".cache" etc.')
 
+
+aparse.add_argument('--date', dest='date', action='store_true',
+                    help= 'Show and sort by modification date')
 #
 #   Pre-process the arg list to hide the -v options(!)#_#_(__
 #
@@ -110,6 +118,16 @@ if args.home:
     homedir = str(sub.check_output('echo $HOME',shell=True)[:-1].decode('UTF-8'))
 
 
+def pfiles(list, nmax):
+    nf = len(list)
+    if nf > nmax:
+        print(f'Too many results ({nf}) ... first {nmax} are:')
+        list = list[:nmax]
+    i=0
+    for path in list:
+        i+=1
+        print(f'{i:3}  {path}')
+
 #print("Home: ",homedir)
 #print("Search Term(s)")
 #print(args.searchTerm)
@@ -120,6 +138,7 @@ if args.case:
 else:  # default is case insensitive
     cmd = 'locate -i '
     grepOpt = '-i'
+
 i=0
 for a in grepTerms:
         if a.startswith(prefix):   # restore the -v option modifer for grep
@@ -151,12 +170,20 @@ i=0
 prevline = 'aldjflawe8203498ijcmk'
 dirs = []
 
-if not args.dirs:
-    print("All Results:")
+if not args.dots:  # eliminate .files and .dirs  unless --dots option.
+    l2 = []
     for l in lines:
-        i+=1
-        print(f'{i:3}  {l}')
-else:
+        keep = True
+        dirs = l.split('/')
+        for dname in dirs:
+            # print(' dname: ', dname, keep)
+            if dname.startswith('.'):
+                keep = False
+        if keep:
+            l2.append(l)
+    lines = l2
+
+if args.dirs:
     # scan for the dirs
     for l in lines:
         if l.startswith(prevline+'/'):
@@ -181,11 +208,22 @@ else:
 
     print ('Directory Results: ')
     # print them
-    for d in dirs:
-        i+=1
-        print(f'{i:3}  {d}')
+    pfiles(dirs, maxResults)
+    # for d in dirs:
+    #     i+=1
+    #     print(f'{i:3}  {d}')
     quit()
 
+else:
+    print("All Results:")
+    pfiles(lines, maxResults)
+    # for l in lines:
+    #     i+=1
+    #     print(f'{i:3}  {l}')
+
+#
+#    Get and process user selection
+#
 
 def get_extension(filename):  # thanks Claude.ai!
     pattern = r'\.([^./\\]+)$'
@@ -197,7 +235,7 @@ if len(lines)>0:
     choice = input('enter result number: ')
     if choice == '':
         quit()
-    elif 'C' in choice or 'c' in choice:
+    elif 'C' in choice or 'c' in choice:     #   Copy the selection to cwd
         if 'C' in choice:
             ichoice = int(choice.replace('C',''))
         if 'c' in choice:
@@ -206,10 +244,10 @@ if len(lines)>0:
         fname = "'"+fname+"'"
         # cmd = ['cp', fname, '.']
         cmd = 'cp '+fname+' .'
-        sub.run(cmd,shell=True) #  copy the desired file to cwd
+        sub.run(cmd,shell=True) #  copy the desired file
         print('Executed: ', cmd)
         quit()
-    elif re.match(r'^\d+$',choice):   # if integer
+    elif re.match(r'^\d+$',choice):   # if integer  Open the identified file by extension
         nm = lines[int(choice)-1]
         ext = get_extension(nm)
         print('Filetype: ', f'[{ext}]')
