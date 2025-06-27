@@ -132,7 +132,7 @@ def get_mod_date_ls_format(filepath): # thanks Claude!
     except:
         return 'deleted file'
 
-def pfiles(flist, nmax, datesort=False, ddict=None):
+def pfiles(flist, nmax, datesort=False, ddict={}):
     if datesort and ddict is not None:
         flist.sort(key=lambda x: ddict[x]) # thanks Claude!
     nf = len(flist)
@@ -202,7 +202,7 @@ if not args.dots:  # eliminate .files and .dirs  unless --dots option.
             l2.append(l)
     lines = l2
 
-ddates = None
+ddates = {}
 if args.date:        #   sort by and print mod date of each file
     ddates = {}
     for l in lines:
@@ -234,7 +234,7 @@ if args.dirs:
 
     print ('Directory Results: ')
     # print them
-    pfiles(dirs,maxResults, datesort=True, ddict=ddates )
+    pfiles(dirs,maxResults, datesort=dateSort, ddict=ddates )
     # for d in dirs:
     #     i+=1
     #     print(f'{i:3}  {d}')
@@ -242,7 +242,7 @@ if args.dirs:
 
 else:
     print("All Results:")
-    pfiles(lines, maxResults, datesort=True, ddict=ddates)
+    pfiles(lines, maxResults, datesort=dateSort, ddict=ddates)
     # for l in lines:
     #     i+=1
     #     print(f'{i:3}  {l}')
