@@ -24,6 +24,7 @@ tools = {'.pdf':pdftool, '.docx':worddoctool, '.odt':worddoctool, '.shn':'docgui
 
 
 maxResults = 25
+dateSort = False
 
 #
 #   build argparser
@@ -64,7 +65,7 @@ aparse.add_argument('--dots', dest='dots', action='store_true',
 aparse.add_argument('--date', dest='date', action='store_true',
                     help= 'Show and sort by modification date')
 #
-#   Pre-process the arg list to hide the -v options(!)#_#_(__
+#   Pre-process the arg flist to hide the -v options(!)#_#_(__
 #
 flipnext = False
 newargs = []
@@ -118,15 +119,33 @@ if args.home:
     homedir = str(sub.check_output('echo $HOME',shell=True)[:-1].decode('UTF-8'))
 
 
-def pfiles(list, nmax):
-    nf = len(list)
+#
+#  Some utilities
+#
+
+def get_mod_date_ls_format(filepath): # thanks Claude!
+    try:
+        result = sub.run(['ls', '-lt', '--time-style=long-iso', filepath],
+                          capture_output=True, text=True, check=True)
+        parts = result.stdout.strip().split()
+        return f"{parts[5]} {parts[6]}"  # Returns: YYYY-MM-DD HH:MM
+    except:
+        return 'deleted file'
+
+def pfiles(flist, nmax, datesort=False, ddict=None):
+    if datesort and ddict is not None:
+        flist.sort(key=lambda x: ddict[x]) # thanks Claude!
+    nf = len(flist)
     if nf > nmax:
         print(f'Too many results ({nf}) ... first {nmax} are:')
-        list = list[:nmax]
+        flist = flist[:nmax]
     i=0
-    for path in list:
+    for path in flist:
         i+=1
-        print(f'{i:3}  {path}')
+        if datesort:
+            print(f'{i:3} {ddict[path]} {path}')
+        else:
+            print(f'{i:3}  {path}')
 
 #print("Home: ",homedir)
 #print("Search Term(s)")
@@ -163,7 +182,7 @@ try:
 except sub.CalledProcessError as grepexc:
     print("Sorry, there were no results")
     quit()
-# Parse the output as a list of strings
+# Parse the output as a flist of strings
 lines = rawres.decode("utf-8").splitlines()
 
 i=0
@@ -182,6 +201,13 @@ if not args.dots:  # eliminate .files and .dirs  unless --dots option.
         if keep:
             l2.append(l)
     lines = l2
+
+ddates = None
+if args.date:        #   sort by and print mod date of each file
+    ddates = {}
+    for l in lines:
+        ddates[l] = get_mod_date_ls_format(l)
+    dateSort = True
 
 if args.dirs:
     # scan for the dirs
@@ -204,11 +230,11 @@ if args.dirs:
             candidate += p + '/'
         dirs.append(candidate)
     # deduplicate
-    dirs = list(set(dirs))
+    dirs = flist(set(dirs))
 
     print ('Directory Results: ')
     # print them
-    pfiles(dirs, maxResults)
+    pfiles(dirs,maxResults, datesort=True, ddict=ddates )
     # for d in dirs:
     #     i+=1
     #     print(f'{i:3}  {d}')
@@ -216,11 +242,12 @@ if args.dirs:
 
 else:
     print("All Results:")
-    pfiles(lines, maxResults)
+    pfiles(lines, maxResults, datesort=True, ddict=ddates)
     # for l in lines:
     #     i+=1
     #     print(f'{i:3}  {l}')
 
+#############################################################################################
 #
 #    Get and process user selection
 #
@@ -230,23 +257,41 @@ def get_extension(filename):  # thanks Claude.ai!
     match = re.search(pattern, filename)
     return match.group() if match else None
 
+def parseInput(txt):
+    cmds = []
+    # thanks Claude !
+    ichoice  = int(match.group()) if (match := re.search(r'\d+', txt)) else None
+    cmds = re.findall(r'[a-zA-Z]', txt)
+    return ichoice, cmds
 
 if len(lines)>0:
     choice = input('enter result number: ')
     if choice == '':
         quit()
-    elif 'C' in choice or 'c' in choice:     #   Copy the selection to cwd
-        if 'C' in choice:
-            ichoice = int(choice.replace('C',''))
-        if 'c' in choice:
-            ichoice = int(choice.replace('c',''))
+
+    ichoice, cmds = parseInput(choice)
+
+    if 'C' in cmds or 'c' in cmds: #   Copy the selection to cwd
         fname = lines[ichoice-1]
         fname = "'"+fname+"'"
         # cmd = ['cp', fname, '.']
         cmd = 'cp '+fname+' .'
         sub.run(cmd,shell=True) #  copy the desired file
-        print('Executed: ', cmd)
+        print('file is copied to current dir.')
         quit()
+
+    if 'D' in cmds or 'd' in cmds: #   Delete the selection
+        fname = lines[ichoice-1]
+        fname = "'"+fname+"'"
+        cmd = 'rm '+fname
+        x= input(f'\n Are you sure you want to delete {fname}? y/N:')
+        if x=='Y' or x =='y':
+           #sub.run(cmd,shell=True)
+            print('SIMULATION file deleted.')
+        else:
+            print("delete action canceled!")
+            quit()
+
     elif re.match(r'^\d+$',choice):   # if integer  Open the identified file by extension
         nm = lines[int(choice)-1]
         ext = get_extension(nm)
