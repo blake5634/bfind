@@ -269,7 +269,7 @@ def parseInput(txt):
     return ichoice, cmds
 
 if len(lines)>0:
-    choice = input('enter result number: ')
+    choice = input('enter result number: (+C,M,D cmds)')
     if choice == '':
         quit()
 
@@ -282,6 +282,15 @@ if len(lines)>0:
         cmd = 'cp '+fname+' .'
         sub.run(cmd,shell=True) #  copy the desired file
         print('file is copied to current dir.')
+        quit()
+
+    if 'M' in cmds or 'm' in cmds: #   Copy the selection to cwd
+        fname = lines[ichoice-1]
+        fname = "'"+fname+"'"
+        # cmd = ['cp', fname, '.']
+        cmd = 'mv '+fname+' .'
+        sub.run(cmd,shell=True) #  copy the desired file
+        print('file is moved to current dir.')
         quit()
 
     if 'D' in cmds or 'd' in cmds: #   Delete the selection
