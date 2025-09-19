@@ -5,9 +5,12 @@ import re
 import subprocess as sub
 import sys
 import argparse as ap
+import pyperclip
 
 
 args = sys.argv
+shntool = '/home/blake/bin/docgui4'
+latextool = '/home/blake/bin/latui4'
 pdftool = '/usr/bin/okular'
 worddoctool = '/usr/bin/libreoffice'
 sheettool = '/usr/bin/libreoffice'
@@ -15,14 +18,16 @@ pptool = '/usr/bin/libreoffice'
 textfiletool = '/usr/bin/kate'
 cpptool = '/usr/bin/kate'
 pythontool = '/usr/bin/kate'
+perltool = '/usr/bin/kate'
 pictool = '/usr/bin/gwenview'
 videotool = '/usr/bin/vlc'
+mdtool = textfiletool
 
-tools = {'.pdf':pdftool, '.docx':worddoctool, '.odt':worddoctool, '.shn':'docgui4',
+tools = {'.pdf':pdftool, '.docx':worddoctool, '.odt':worddoctool, '.shn':shntool,
          '.xlsx':sheettool, '.xls':sheettool, '.ods':sheettool,
-         '.txt':textfiletool, '.tex':textfiletool,
+         '.txt':textfiletool, '.tex':latextool,
          '.cpp':cpptool, '.c':cpptool, '.h':cpptool,
-         '.ino':cpptool,  '.py':pythontool,
+         '.ino':cpptool,  '.py':pythontool, '.pl':perltool, '.md':mdtool,
          '.png':pictool, '.jpg':pictool, '.mpg':videotool, '.mp4':videotool,
          '.svg':'inkscape', '.ppt':pptool}
 
@@ -269,11 +274,16 @@ def parseInput(txt):
     return ichoice, cmds
 
 if len(lines)>0:
+    print(' C - copy to cwd; M - move to cwd; D - delete; <none> copy link to paste buf.')
     choice = input('enter result number: (+C,M,D cmds)')
-    if choice == '':
+    if choice == '':  # no input
         quit()
 
     ichoice, cmds = parseInput(choice)
+    if len(cmds) == 0:
+        pyperclip.copy(lines[ichoice-1]) # put the choice in paste buffer
+        quit()
+
 
     if 'C' in cmds or 'c' in cmds: #   Copy the selection to cwd
         fname = lines[ichoice-1]
