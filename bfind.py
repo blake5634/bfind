@@ -9,27 +9,29 @@ import pyperclip
 
 
 args = sys.argv
-shntool = '/home/blake/bin/docgui4'
-latextool = '/home/blake/bin/latui4'
-pdftool = '/usr/bin/okular'
-worddoctool = '/usr/bin/libreoffice'
-sheettool = '/usr/bin/libreoffice'
-pptool = '/usr/bin/libreoffice'
-textfiletool = '/usr/bin/kate'
-cpptool = '/usr/bin/kate'
-pythontool = '/usr/bin/kate'
-perltool = '/usr/bin/kate'
-pictool = '/usr/bin/gwenview'
-videotool = '/usr/bin/vlc'
-mdtool = textfiletool
 
-tools = {'.pdf':pdftool, '.docx':worddoctool, '.odt':worddoctool, '.shn':shntool,
-         '.xlsx':sheettool, '.xls':sheettool, '.ods':sheettool,
-         '.txt':textfiletool, '.tex':latextool,
+textfiletool = '/usr/bin/kate'
+latextool    = textfiletool
+shntool      = textfiletool
+mdtool       = textfiletool
+pdftool      = '/usr/bin/okular'
+worddoctool  = '/usr/bin/libreoffice'
+sheettool    = '/usr/bin/libreoffice'
+pptool       = '/usr/bin/libreoffice'
+svgtool      = '/usr/bin/inkscape'
+cpptool      = '/usr/bin/kate'
+pythontool   = '/usr/bin/kate'
+perltool     = '/usr/bin/kate'
+pictool      = '/usr/bin/gwenview'
+videotool    = '/usr/bin/vlc'
+
+tools = {'.pdf':pdftool, '.docx':worddoctool, '.doc':worddoctool, '.odt':worddoctool, '.shn':shntool,
+         '.xlsx':sheettool, '.xls':sheettool, '.csv':sheettool, '.ods':sheettool,
+         '.tex':latextool, '.bib':latextool, '.txt':textfiletool, '.json':textfiletool,
          '.cpp':cpptool, '.c':cpptool, '.h':cpptool,
-         '.ino':cpptool,  '.py':pythontool, '.pl':perltool, '.md':mdtool,
+         '.ino':cpptool,  '.py':pythontool, '.pl':perltool, '.sh':textfiletool, '.md':mdtool,
          '.png':pictool, '.jpg':pictool, '.mpg':videotool, '.mp4':videotool,
-         '.svg':'inkscape', '.ppt':pptool}
+         '.svg':svgtool, '.ppt':pptool}
 
 
 maxResults = 25
@@ -270,18 +272,21 @@ def parseInput(txt):
     cmds = []
     # thanks Claude !
     ichoice  = int(match.group()) if (match := re.search(r'\d+', txt)) else None
-    cmds = re.findall(r'[a-zA-Z]', txt)
+    cmds = re.findall(r'[\.a-zA-Z]', txt)
     return ichoice, cmds
 
 if len(lines)>0:
-    print(' C - copy to cwd; M - move to cwd; D - delete; <none> copy link to paste buf.')
-    choice = input('enter result number: (+C,M,D cmds)')
-    if choice == '':  # no input
+    print(' C - copy to cwd; M - move to cwd; D - delete; . - copy link to paste buf.')
+    choice = input('enter result number: (+ C,M,D,"." cmds)')
+    if choice == '':  # no input (keep it simple!)
         quit()
 
     ichoice, cmds = parseInput(choice)
-    if len(cmds) == 0:
-        pyperclip.copy(lines[ichoice-1]) # put the choice in paste buffer
+
+    # e.g. '4.' means copy path #4 into paste buffer
+    if '.' in cmds:
+        pyperclip.copy(lines[ichoice-1]) # put the chosen path into the paste buffer
+        print(lines[ichoice-1], 'copied to paste buffer.')
         quit()
 
 
