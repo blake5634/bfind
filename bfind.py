@@ -314,8 +314,8 @@ if len(lines)>0:
         cmd = 'rm '+fname
         x= input(f'\n Are you sure you want to delete {fname}? y/N:')
         if x=='Y' or x =='y':
-           #sub.run(cmd,shell=True)
-            print('SIMULATION file deleted.')
+            sub.run(cmd,shell=True)
+            print(fname, 'is  deleted.')
         else:
             print("delete action canceled!")
             quit()
