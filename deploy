@@ -1,3 +1,19 @@
-cp ./bfind.py ~/Personal_BH/Maintenance/bin
-cp ./bfind.py ~/bin
-cp ./bfind.py ~/bin/bfind
+#!/bin/bash
+
+DIR="$HOME/Personal_BH/Maintenance"
+FILE="bfind.py"
+FIL="bfind"        # for quick use on command line
+#
+#
+
+# copy both versions to reference bin copy for restoration or mass upgrade
+cp $FILE   "$DIR/bin"
+chmod 755  "$DIR/bin/$FILE"
+cp "$FILE" "$DIR/bin/$FIL"
+chmod 755  "$DIR/bin/$FIL"
+
+# update the local machine's ~/bin
+cp "$FILE"    "$HOME/bin/$FILE"
+chmod 755     "$HOME/bin/$FILE"
+cp ./"$FILE"  "$HOME/bin/$FIL"
+chmod  755    "$HOME/bin/$FIL"
