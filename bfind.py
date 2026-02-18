@@ -11,6 +11,9 @@ import pyperclip
 args = sys.argv
 
 textfiletool = '/usr/bin/kate'
+cpptool      = '/usr/bin/kate'
+pythontool   = '/usr/bin/kate'
+perltool     = '/usr/bin/kate'
 latextool    = textfiletool
 shntool      = textfiletool
 mdtool       = textfiletool
@@ -19,9 +22,6 @@ worddoctool  = '/usr/bin/libreoffice'
 sheettool    = '/usr/bin/libreoffice'
 pptool       = '/usr/bin/libreoffice'
 svgtool      = '/usr/bin/inkscape'
-cpptool      = '/usr/bin/kate'
-pythontool   = '/usr/bin/kate'
-perltool     = '/usr/bin/kate'
 pictool      = '/usr/bin/gwenview'
 videotool    = '/usr/bin/vlc'
 
@@ -31,7 +31,7 @@ tools = {'.pdf':pdftool, '.docx':worddoctool, '.doc':worddoctool, '.odt':worddoc
          '.cpp':cpptool, '.c':cpptool, '.h':cpptool,
          '.ino':cpptool,  '.py':pythontool, '.pl':perltool, '.sh':textfiletool, '.md':mdtool,
          '.png':pictool, '.jpg':pictool, '.mpg':videotool, '.mp4':videotool,
-         '.svg':svgtool, '.ppt':pptool}
+         '.svg':svgtool, '.ppt':pptool, '.conf':textfiletool}
 
 
 maxResults = 25
@@ -272,11 +272,11 @@ def parseInput(txt):
     cmds = []
     # thanks Claude !
     ichoice  = int(match.group()) if (match := re.search(r'\d+', txt)) else None
-    cmds = re.findall(r'[\.a-zA-Z]', txt)
+    cmds = re.findall(r'[,\.a-zA-Z]', txt)
     return ichoice, cmds
 
 if len(lines)>0:
-    print(' C - copy to cwd; M - move to cwd; D - delete; . - copy link to paste buf.')
+    print(' C - copy to cwd; M - move to cwd; D - delete; . - copy link to paste buf.; , - copy dir to paste buf.')
     choice = input('enter result number: (+ C,M,D,"." cmds)')
     if choice == '':  # no input (keep it simple!)
         quit()
@@ -289,6 +289,14 @@ if len(lines)>0:
         print(lines[ichoice-1], 'copied to paste buffer.')
         quit()
 
+    # e.g. '4,' means copy path #4's DIR into paste buffer
+    if ',' in cmds:
+        chosen_dir = '/'.join(lines[ichoice-1].split('/')[:-1])
+        # print('Planning to copy: ', chosen_dir)
+        pyperclip.copy(chosen_dir) # put the chosen DIR path into the paste buffer
+        print(chosen_dir, 'copied to paste buffer.')
+        quit()
+
 
     if 'C' in cmds or 'c' in cmds: #   Copy the selection to cwd
         fname = lines[ichoice-1]
@@ -299,7 +307,7 @@ if len(lines)>0:
         print('file is copied to current dir.')
         quit()
 
-    if 'M' in cmds or 'm' in cmds: #   Copy the selection to cwd
+    if 'M' in cmds or 'm' in cmds: #   Move the selection to cwd
         fname = lines[ichoice-1]
         fname = "'"+fname+"'"
         # cmd = ['cp', fname, '.']
